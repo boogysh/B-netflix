@@ -6,20 +6,36 @@ import { useDispatch, useSelector } from "react-redux";
 import { SHOWS } from "../redux/actions";
 
 export default function Home() {
-  const { user, movies,savedShows } = useSelector((state) => state.userReducer);
+  const { user, token, movies, savedShows } = useSelector(
+    (state) => state.userReducer
+  );
   console.log("allMovies:", movies?.length);
 
   const dispatch = useDispatch();
-
+  
   useEffect(() => {
-    dispatch(SHOWS(user?.savedShows));
-  }, [user, dispatch]);
+    const getLikedMovies = async () => {
+      const response = await fetch(
+        `${process.env.REACT_APP_URL}/${user._id}/favorites`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const likedMovies = await response.json();
+      console.log("likedMovies", likedMovies);
+
+      // const likedMovies = Object.keys(updatedSavedShows.savedShows); //not here 
+      dispatch(SHOWS(likedMovies));
+    };
+    getLikedMovies();
+  }, [dispatch, token, user._id]);
 
   const isLiked = Boolean(savedShows[movies.id]);
-  useEffect(() => {}, [isLiked]); 
-  
-
-
+  useEffect(() => {}, [isLiked]);
 
   return (
     <>
